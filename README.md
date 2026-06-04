@@ -24,6 +24,32 @@ Browser ──▶ nginx ──/check──▶ Python checker ──▶ requests 
 - **Frontend:** a single static HTML page with a URL input.
 - **Serving:** nginx proxies the check endpoint to the service so the page stays same-origin.
 
+## Run it
+
+```bash
+docker compose up --build
+# open http://localhost:8080
+```
+
+## Security
+
+The checker resolves every target host and **refuses anything that isn't a
+globally routable address** — loopback, private/RFC1918, link-local (incl. the
+`169.254.169.254` cloud-metadata IP), CGNAT and reserved ranges are all blocked,
+and each redirect hop is re-validated. That keeps it from being used as an SSRF
+pivot into internal services.
+
+## Structure
+
+```text
+.
+├── app/index.html      the page with a URL input
+├── server.py           the checker — stdlib only, with SSRF guards
+├── nginx.conf          serves the page + proxies /webcheck/ on one origin
+├── docker-compose.yml  backend + nginx
+└── Dockerfile          backend image
+```
+
 ## Tech
 
-Python · nginx · HTML
+Python · nginx · HTML · Docker
